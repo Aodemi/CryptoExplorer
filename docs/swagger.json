@@ -1,0 +1,203 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API CryptoExplorer",
+    "version": "0.2.0"
+  },
+  "servers": [
+    { "url": "http://localhost:3001" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "example": "user@example.com" },
+          "password": { "type": "string", "example": "motdepasse123" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "username", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "username": { "type": "string" },
+          "password": { "type": "string" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string" },
+          "username": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "admin"] },
+          "favorites": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "description": "Jeton JWT Bearer" },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "MarketItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "symbol": { "type": "string" },
+          "name": { "type": "string" },
+          "current_price": { "type": "number" },
+          "market_cap": { "type": "number" },
+          "total_volume": { "type": "number" }
+        }
+      },
+      "MarketListResponse": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer" },
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/MarketItem" } }
+        }
+      },
+      "Crypto": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "coingeckoId": { "type": "string" },
+          "symbol": { "type": "string" },
+          "name": { "type": "string" },
+          "image": { "type": "string" }
+        }
+      },
+      "CryptosListResponse": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer" },
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Crypto" } }
+        }
+      },
+      "ConvertToNewModelRequest": {
+        "type": "object",
+        "properties": {
+          "vs_currency": { "type": "string", "example": "usd" },
+          "ids": { "type": "string", "example": "bitcoin,ethereum" },
+          "per_page": { "type": "integer", "example": 50 },
+          "page": { "type": "integer", "example": 1 }
+        }
+      },
+      "ConvertToNewModelResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Conversion effectuée (snapshots enregistrés)" },
+          "inserted": { "type": "integer", "example": 2 }
+        }
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Connexion et obtention du JWT",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } }
+            }
+          },
+          "400": { "description": "Requête invalide" },
+          "401": { "description": "Identifiants invalides" }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Inscription et obtention du JWT",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } }
+            }
+          },
+          "400": { "description": "Requête invalide" },
+          "409": { "description": "Email déjà enregistré" }
+        }
+      }
+    },
+    "/api/markets": {
+      "get": {
+        "tags": ["Markets"],
+        "summary": "Lister les données marché live depuis CoinGecko",
+        "parameters": [
+          { "name": "vs_currency", "in": "query", "schema": { "type": "string" }, "example": "usd" },
+          { "name": "ids", "in": "query", "schema": { "type": "string" }, "example": "bitcoin,ethereum" },
+          { "name": "per_page", "in": "query", "schema": { "type": "integer" }, "example": 50 },
+          { "name": "page", "in": "query", "schema": { "type": "integer" }, "example": 1 }
+        ],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MarketListResponse" } } } },
+          "401": { "description": "Non autorisé" }
+        }
+      }
+    },
+    "/api/markets/convertToNewModel": {
+      "post": {
+        "tags": ["Markets"],
+        "summary": "Convertir les marchés live en modèle (enregistrer snapshots)",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ConvertToNewModelRequest" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ConvertToNewModelResponse" } } } },
+          "401": { "description": "Non autorisé" }
+        }
+      }
+    },
+    "/api/cryptos": {
+      "get": {
+        "tags": ["Cryptos"],
+        "summary": "Lister les cryptos stockées",
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CryptosListResponse" } } } },
+          "401": { "description": "Non autorisé" }
+        }
+      }
+    }
+  }
+}

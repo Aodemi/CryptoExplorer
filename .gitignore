@@ -1,0 +1,10 @@
+# Backend
+node_modules/
+dist/
+logs/
+.env
+certs/*.pem
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
