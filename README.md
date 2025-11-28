@@ -5,8 +5,16 @@
 1. Copier `.env.example` en `.env` et ajuster les variables.
 2. Installer les dépendances.
 3. Lancer en développement.
+4. Changer de répertoire pour aller dans le dossier frontend et recommencer.
 
 ```powershell
+Copy-Item .env.example .env
+npm install
+npm run dev
+```
+
+```powershell
+cd frontend
 Copy-Item .env.example .env
 npm install
 npm run dev
