@@ -1,28 +1,20 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Analyse() {
-    const [favoritesIds, setFavoritesIds] = useState<string[]>([]);
-
-    useEffect(() => {
-        const storedFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        setFavoritesIds(storedFavorites);
-    }, []);
-    const removeFavorite = (id: string) => {
-        const updatedFavorites = favoritesIds.filter(favId => favId !== id);
-        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-        setFavoritesIds(updatedFavorites);
-    };
+    const { favorites, removeFavorite, user } = useAuth();
     return (
         
         <section>
             <Link to="/cryptos"> Retour</Link>
             <h1>Favoris</h1>
-            {favoritesIds.length === 0 ? (
+            {!user ? (
+                <p>Veuillez vous connecter pour voir vos favoris.</p>
+            ) : favorites.length === 0 ? (
                 <p>Vous n'avez pas encore ajouté de cryptomonnaies aux favoris.</p>
             ) : (
                 <ul className="list">
-                    {favoritesIds.map((id) => (
+                    {favorites.map((id) => (
                         <li key={id}>
                             <span>{id}</span>
                             <button onClick={() => removeFavorite(id)}>Retirer des favoris</button>

@@ -3,33 +3,27 @@ import { api } from "../api/client";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import CryptoChart from "../components/CryptoChart";
+import { useAuth } from "../context/AuthContext";
 
 export default function Analyse() {
     const { id } = useParams();
     const [crypto, setCrypto] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const { user, favorites, addFavorite, removeFavorite } = useAuth();
+    
         useEffect(() => {
         if (id) {
             fetchCryptoData(id);
-            checkIfIsFavorite();
 
         }
     }, [id]);
 
-    const checkIfIsFavorite = () => {
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        return favorites.includes(id);
-    };
+    const isFavorite = !!(id && favorites.includes(id));
 
     const toggleFavorite = () => {
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        if (checkIfIsFavorite()) {
-            const updatedFavorites = favorites.filter((favId: string) => favId !== id);
-            localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-        } else {
-            favorites.push(id);
-            localStorage.setItem("favorites", JSON.stringify(favorites));
-        }
+        if (!id || !user) return;
+        if (favorites.includes(id)) removeFavorite(id);
+        else addFavorite(id);
     };
 
     const fetchCryptoData = async (id: string) => {
@@ -69,7 +63,8 @@ export default function Analyse() {
 
             <div style={{ marginTop: "30px", display: "flex", gap: "10px" }}>
                 <button className="btn" onClick={toggleFavorite}
-                >   {checkIfIsFavorite() ? "★ Retirer des favoris" : "⭐ Ajouter aux favoris"}</button>
+                disabled={!user}
+                >   {isFavorite ? "★ Retirer des favoris" : "⭐ Ajouter aux favoris"}</button>
             </div>
             <div className="card" style={{ marginBottom: "30px" }}>
                 <h3> Graphique des prix</h3>

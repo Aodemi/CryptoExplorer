@@ -25,5 +25,9 @@ export const api = {
   async get<T = any>(url: string): Promise<T> {
     const res = await instance.get(url);
     return res.data as T;
+  },
+  async delete<T = any>(url: string): Promise<T> {
+    const res = await instance.delete(url);
+    return res.data as T;
   }
 };

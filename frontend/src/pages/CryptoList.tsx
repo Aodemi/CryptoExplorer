@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 type Market = { id: string; symbol: string; name: string; current_price?: number };
 
@@ -10,6 +11,7 @@ export default function CryptoList() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [cooldown, setCooldown] = useState(false);
+  const { user, favorites, addFavorite, removeFavorite } = useAuth();
   const perPage = 100;
 
   async function loadPage(p: number, replace = false) {
@@ -55,17 +57,15 @@ export default function CryptoList() {
               <strong>{crypto.name}</strong> <small>({crypto.symbol})</small>
             </div>
             {crypto.current_price != null && <div>${crypto.current_price}</div>}
-            <button onClick={()=> {
-              const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-              if (favorites.includes(crypto.id)) {
-                const updatedFavorites = favorites.filter((favId: string) => favId !== crypto.id);
-                localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-              } else {
-                favorites.push(crypto.id);
-                localStorage.setItem("favorites", JSON.stringify(favorites));
-              }
-            }}>
-              {JSON.parse(localStorage.getItem("favorites") || "[]").includes(crypto.id) ? "★ Retirer des favoris" : "⭐ Ajouter aux favoris"}
+            <button
+              disabled={!user}
+              onClick={() => {
+                const isFav = favorites.includes(crypto.id);
+                if (isFav) removeFavorite(crypto.id);
+                else addFavorite(crypto.id);
+              }}
+            >
+              {favorites.includes(crypto.id) ? "★ Retirer des favoris" : "⭐ Ajouter aux favoris"}
             </button>
             <Link to={`/analyse/${crypto.id}`} className="btn">Analyser</Link>
           </li>

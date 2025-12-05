@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IMarketSnapshot extends Document {
-  asset: Types.ObjectId; // Reference to Crypto (formerly Asset)
+  asset: string; // CoinGecko ID
   vsCurrency: string;
   currentPrice: number;
   marketCap: number;
@@ -11,7 +11,7 @@ export interface IMarketSnapshot extends Document {
 }
 
 const MarketSnapshotSchema = new Schema<IMarketSnapshot>({
-  asset: { type: Schema.Types.ObjectId, ref: "Crypto", required: true, index: true },
+  asset: { type: String, required: true, index: true },
   vsCurrency: { type: String, required: true, index: true },
   currentPrice: { type: Number, required: true },
   marketCap: { type: Number, required: true },
