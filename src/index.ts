@@ -6,6 +6,7 @@ import configLib from "config";
 import type { ServerCfg } from "./config/config.type";
 import { connectDB } from "./config/db";
 import http from "http";
+import { importMarketsToDB } from "./utils/importMarkets"; 
 
 const srv = (configLib.has("server") ? configLib.get<ServerCfg>("server") : {
   trustProxy: false,
@@ -23,7 +24,12 @@ if (srv.https.enabled && httpsServer) {
   server = httpsServer;
 }
 
-connectDB().then(() => {
+connectDB().then(async () => {
+  console.log("MongoDB connecté !");
+
+  // 🔹 AJOUT : import automatique des cryptos dès le démarrage
+  await importMarketsToDB();
+
   server.listen(port, () => {
     console.log(`Server listening at ${protocol}://localhost:${port}`);
   });
