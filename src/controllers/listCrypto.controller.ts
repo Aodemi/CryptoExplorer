@@ -1,6 +1,6 @@
-// src/controllers/crypto.controller.ts
 import { Request, Response } from "express";
 import { getCryptosFromAPI } from "../services/crypto.service";
+import { rechercheCrypto } from "../services/crypto.service";
 
 export async function listCryptosAPI(req: Request, res: Response) {
   try {
@@ -20,5 +20,18 @@ export async function listCryptosAPI(req: Request, res: Response) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur lors de la récupération depuis CoinGecko" });
+  }
+}
+
+export async function rechercherCrypto(req: Request, res: Response) {
+  try {
+    const filters = req.query;
+    const results = await rechercheCrypto(filters);
+    res.json({
+      data: results
+    })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erreur lors de la recherche."})
   }
 }
