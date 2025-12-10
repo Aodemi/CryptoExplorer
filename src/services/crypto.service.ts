@@ -1,110 +1,63 @@
-// src/services/crypto.service.ts
+import { CryptoModel } from "../models/Crypto";
+import { MarketSnapshotModel } from "../models/MarketSnapshot";
 import axios from "axios";
-import { getMarkets } from "./coingecko.service";
-
-const BASE_URL = "https://api.coingecko.com/api/v3";
 
 
 interface ListCryptosParams {
   page?: number;
-  per_page?: number;
-  sort?: "popular" | "recent";
-  vs_currency?: string;
+  limit?: number;
+  search?: string;
 }
 
-interface HistoryPoint {
-  timestamp: number;
-  price: number;
-}
-
-
-// Fonction pour lister les crypto 
-export async function getCryptosFromAPI({
+export async function getCryptos({
   page = 1,
-  per_page = 20,
-  sort = "popular",
-  vs_currency = "usd",
+  limit = 20,
+  search
 }: ListCryptosParams) {
-  if (sort === "recent") {
-    return getMarkets({
-      vs_currency,
-      order: "id_desc",
-      per_page,
-      page,
-      price_change_percentage: "24h"
-    });
-  }
+    
+  const searchTerm = (search || '').trim();
 
-  // Pour les plus populaires : tri par market cap
-  return getMarkets({
-    vs_currency,
-    order: "market_cap_desc",
-    per_page,
+  let regex = `^${searchTerm}$`;
+  
+  const filter = searchTerm.length > 0 
+    ? { name: { $regex: regex, $options: "i" } } 
+    : {}; 
+
+  const finalLimit = searchTerm.length > 0 ? 1 : limit;
+
+  const total = await CryptoModel.countDocuments(filter);
+
+  const cryptos = await CryptoModel.find(filter)
+    .skip((page - 1) * limit) 
+    .limit(finalLimit)
+    .lean();
+
+  return {
     page,
-    price_change_percentage: "24h"
-  });
+    limit: finalLimit,
+    total,
+    totalPages: Math.ceil(total / limit), 
+    data: cryptos
+  };
 }
 
-// Fonction pour rechercher type de crypto (filtrage)
-export async function rechercheCrypto({
-    name, 
-    vs_currency = 'usd',
-    marketCapMin,
-    marketCapMax,
-    volumeMin,
-    volumeMax,
-    change24hMin,
-    change24hMax,
-    page = 1,
-    per_page = 50,
-}: any) {
-  const data = await getMarkets({
-    vs_currency,
-    order: "market_cap_desc",
-    per_page,
-    page,
-    price_change_percentage: "24h"
-  });
 
-  let filtered = data;
 
-  if (name) {
-    const search = name.toLowerCase();
-    filtered = filtered.filter(
-      c =>
-        c.name.toLowerCase().includes(search) ||
-        c.symbol.toLowerCase().includes(search)
-    );
-  }
+export async function getHistoryFromDB(coinId: string, days = 30) {
+  const crypto = await CryptoModel.findOne({ coingeckoId: coinId });
+  if (!crypto) throw new Error("Crypto introuvable dans la BD");
 
-  if (marketCapMin)
-    filtered = filtered.filter(c => c.market_cap >= Number(marketCapMin));
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  if (marketCapMax)
-    filtered = filtered.filter(c => c.market_cap >= Number(marketCapMax));
+  const snapshots = await MarketSnapshotModel.find({
+    asset: crypto._id,
+    capturedAt: { $gte: since }
+  })
+    .sort({ capturedAt: 1 })
+    .lean();
 
-  if (volumeMin)
-    filtered = filtered.filter(c => c.total_volume >= Number(volumeMin));
-
-  if (volumeMax)
-    filtered = filtered.filter(c => c.total_volume >= Number(volumeMax));
-
-  if (change24hMin)
-    filtered = filtered.filter(c => c.price_change_percentage_24h >= Number(change24hMin));
-
-  if (change24hMax)
-    filtered = filtered.filter(c => c.price_change_percentage_24h >= Number(change24hMax));
-
-  return filtered;
-}
-
-export async function getHistory(coinId: string, days: number = 30, vs_currency = "usd") {
-  const url = `${BASE_URL}/coins/${coinId}/market_chart`;
-  const res = await axios.get(url, {
-    params: { vs_currency, days },
-  });
-
-  return res.data.prices; 
+  // retourne uniquement les prix (comme CoinGecko)
+  return snapshots.map(s => s.currentPrice);
 }
 
 
@@ -120,45 +73,52 @@ export function computeSMA(data: number[], period: number): number[] {
 
 
 export function computeVolatility(data: number[]): number {
-  const mean = data.reduce((a, b) => a + b) / data.length;
-  const variance = data.map((p) => (p - mean) ** 2).reduce((a, b) => a + b) / data.length;
+  const mean = data.reduce((a, b) => a + b, 0) / data.length;
+  const variance =
+    data.map(p => (p - mean) ** 2).reduce((a, b) => a + b, 0) / data.length;
   return Math.sqrt(variance);
 }
 
 
-export function calculerNoteCrypto(coinId: any, history: number[]) {
- if (!history || history.length === 0) {
-  throw new Error ("Historique introuvable")
- }
+export function calculerNoteCrypto(coinId: string, history: number[]) {
+  if (!history || history.length === 0) {
+    throw new Error("Historique introuvable");
+  }
 
- let score = 20;
+  let score = 20;
 
- const lastPrice = history[history.length - 1];
- const firstPrice = history[0];
+  const lastPrice = history[history.length - 1];
+  const firstPrice = history[0];
 
- const variation = ((lastPrice - firstPrice) / firstPrice) * 100;
+  const variation = ((lastPrice - firstPrice) / firstPrice) * 100;
 
- if (variation > 0) score += 10;
- if (variation > 20) score += 15;
- if (variation < -10) score -= 10;
+  if (variation > 0) score += 10;
+  if (variation > 20) score += 15;
+  if (variation < -10) score -= 10;
 
- const mean = history.reduce((a,b) => a+b, 0) / history.length;
- const volatility = Math.sqrt(history.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / history.length);
+  const mean = history.reduce((a, b) => a + b, 0) / history.length;
+  const volatility = Math.sqrt(
+    history.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / history.length
+  );
 
- if (volatility < mean * 0.05) score += 10;
- else if (volatility > mean * 0.02) score -= 10;
+  if (volatility < mean * 0.05) score += 10;
+  else if (volatility > mean * 0.02) score -= 10;
 
- score = Math.max(0, Math.min(100, Math.round(score)));
+  score = Math.max(0, Math.min(100, Math.round(score)));
 
- // Messages
- const message = score > 70 ? "Probabilité élevée de succès pour cette crypto" : score >= 50 ? "Probabilité modérée de succès" : "Faible probabilité de succès"
+  const message =
+    score > 70
+      ? "Probabilité élevée de succès pour cette crypto"
+      : score >= 50
+      ? "Probabilité modérée de succès"
+      : "Faible probabilité de succès";
 
- return {
-  coinId,
-  score,
-  daysAnalyzed: history.length,
-  variation: parseFloat(variation.toFixed(2)),
-  volatility: parseFloat(volatility.toFixed(2)),
-  message
- }
+  return {
+    coinId,
+    score,
+    daysAnalyzed: history.length,
+    variation: parseFloat(variation.toFixed(2)),
+    volatility: parseFloat(volatility.toFixed(2)),
+    message
+  };
 }
