@@ -5,6 +5,10 @@ import Home from "./pages/Home";
 import CryptoList from "./pages/CryptoList";
 import UserProfile from "./pages/UserProfile";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import Analyse from "./pages/Analyse";
+import Favorites from "./pages/Favorites";
+
+
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { token } = useAuth();
@@ -16,10 +20,11 @@ function NavBar() {
   return (
     <header className="nav">
       <nav>
-        <Link to="/">Home</Link>
+        <Link to="/" className="nav-link">Home</Link>
         {token && <>
-          <Link to="/cryptos">Cryptos</Link>
-          <Link to="/profile">Profil</Link>
+          <Link to="/cryptos" className="nav-link">Cryptos</Link>
+          <Link to="/profile" className="nav-link">Profil</Link>
+          <Link to="/favorites" className="nav-link">Favoris</Link>
         </>}
       </nav>
       <div className="spacer" />
@@ -50,6 +55,8 @@ export default function App() {
           <Route path="/cryptos" element={<PrivateRoute><CryptoList /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><UserProfile /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
+          <Route path="analyse/:id" element={<PrivateRoute><Analyse /></PrivateRoute>} />
+          <Route path="/favorites" element={<PrivateRoute><Favorites /></PrivateRoute>} />
         </Routes>
       </main>
     </AuthProvider>
