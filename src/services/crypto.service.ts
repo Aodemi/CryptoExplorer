@@ -104,10 +104,10 @@ export async function getHistory(coinId: string, days: number = 30, vs_currency 
     params: { vs_currency, days },
   });
 
-  return res.data.prices; // format: [ [timestamp, price], ... ]
+  return res.data.prices; 
 }
 
-// Simple moving average
+
 export function computeSMA(data: number[], period: number): number[] {
   const result: number[] = [];
   for (let i = period; i <= data.length; i++) {
@@ -118,9 +118,47 @@ export function computeSMA(data: number[], period: number): number[] {
   return result;
 }
 
-// Volatilité (écart-type)
+
 export function computeVolatility(data: number[]): number {
   const mean = data.reduce((a, b) => a + b) / data.length;
   const variance = data.map((p) => (p - mean) ** 2).reduce((a, b) => a + b) / data.length;
   return Math.sqrt(variance);
+}
+
+
+export function calculerNoteCrypto(coinId: any, history: number[]) {
+ if (!history || history.length === 0) {
+  throw new Error ("Historique introuvable")
+ }
+
+ let score = 20;
+
+ const lastPrice = history[history.length - 1];
+ const firstPrice = history[0];
+
+ const variation = ((lastPrice - firstPrice) / firstPrice) * 100;
+
+ if (variation > 0) score += 10;
+ if (variation > 20) score += 15;
+ if (variation < -10) score -= 10;
+
+ const mean = history.reduce((a,b) => a+b, 0) / history.length;
+ const volatility = Math.sqrt(history.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / history.length);
+
+ if (volatility < mean * 0.05) score += 10;
+ else if (volatility > mean * 0.02) score -= 10;
+
+ score = Math.max(0, Math.min(100, Math.round(score)));
+
+ // Messages
+ const message = score > 70 ? "Probabilité élevée de succès pour cette crypto" : score >= 50 ? "Probabilité modérée de succès" : "Faible probabilité de succès"
+
+ return {
+  coinId,
+  score,
+  daysAnalyzed: history.length,
+  variation: parseFloat(variation.toFixed(2)),
+  volatility: parseFloat(volatility.toFixed(2)),
+  message
+ }
 }
