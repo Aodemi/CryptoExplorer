@@ -5,7 +5,6 @@ export async function listCryptosDB(req: Request, res: Response) {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
-    const sort = (req.query.sort as "recent" | "name" | "marketCap" | "volume" | "performance") || "marketCap";
     const search = req.query.search as string | undefined;
 
     const data = await getCryptos({ page, limit, search });
@@ -16,7 +15,6 @@ export async function listCryptosDB(req: Request, res: Response) {
     res.status(500).json({ message: "Erreur lors de la récupération des cryptos depuis la base" });
   }
 }
-
 
 export async function rechercherCrypto(req: Request, res: Response) {
   try {
@@ -37,7 +35,6 @@ export async function rechercherCrypto(req: Request, res: Response) {
     if (result.data.length === 0) {
       return res.status(404).json({ message: "Crypto non trouvée" });
     }
-
 
     res.json(result.data[0]); 
   } catch (err) {
