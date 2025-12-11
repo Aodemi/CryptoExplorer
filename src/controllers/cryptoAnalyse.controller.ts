@@ -1,28 +1,42 @@
-// src/controllers/crypto.controller.ts
 import { Request, Response } from "express";
-import { getHistory,computeSMA,computeVolatility} from "../services/crypto.service";
+import { 
+  getHistoryFromDB, 
+  computeSMA, 
+  computeVolatility, 
+  calculerNoteCrypto 
+} from "../services/crypto.service";
 
 export async function analyseCrypto(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { days = 30, period = 7 } = req.query;
+    const { period = 7 } = req.query;
 
-    const raw = await getHistory(id, Number(days));
+    const raw = await getHistoryFromDB(id);
+    if (!raw || raw.length === 0) {
+      return res.status(404).json({ error: "Historique introuvable" });
+    }
 
-    const prices = raw.map((p: number[]) => p[1]);
+    const prices = raw;
 
     const sma = computeSMA(prices, Number(period));
     const volatility = computeVolatility(prices);
 
-    res.json({
+    const note = calculerNoteCrypto(id, prices);
+
+    return res.json({
       id,
-      days,
-      period,
-      volatility,
+      period: Number(period),
+      prices,
       sma,
-      prices
+      volatility,
+      successScore: note.score,
+      variation: note.variation,      
+      message: note.message,
+      daysAnalyzed: note.daysAnalyzed
     });
+
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    console.error(e);
+    return res.status(500).json({ error: e.message });
   }
 }

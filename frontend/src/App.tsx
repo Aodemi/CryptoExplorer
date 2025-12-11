@@ -7,6 +7,7 @@ import UserProfile from "./pages/UserProfile";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Analyse from "./pages/Analyse";
 import Favorites from "./pages/Favorites";
+import Admin from "./pages/Admin";
 
 
 
@@ -25,6 +26,9 @@ function NavBar() {
           <Link to="/cryptos" className="nav-link">Cryptos</Link>
           <Link to="/profile" className="nav-link">Profil</Link>
           <Link to="/favorites" className="nav-link">Favoris</Link>
+          {token && user?.role === "admin" && (
+            <Link to="/admin">Admin</Link>
+          )}
         </>}
       </nav>
       <div className="spacer" />
@@ -57,6 +61,8 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" />} />
           <Route path="analyse/:id" element={<PrivateRoute><Analyse /></PrivateRoute>} />
           <Route path="/favorites" element={<PrivateRoute><Favorites /></PrivateRoute>} />
+          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+
         </Routes>
       </main>
     </AuthProvider>

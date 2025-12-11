@@ -1,39 +1,36 @@
-import { getMarkets } from "./coingecko.service";
+// src/services/dashboard.service.ts
 import { UserModel } from "../models/User";
-
+import { CryptoModel } from "../models/Crypto";
+import { MarketSnapshotModel } from "../models/MarketSnapshot";
 
 export async function getUserDashboard(userId: string, vs_currency = "usd") {
-    const user = await UserModel.findById(userId);
+  const user = await UserModel.findById(userId).lean();
+  if (!user) throw new Error("Utilisateur introuvable");
 
-    if (!user) {
-        throw new Error ("Utilisateur introuvable")
-    }
+  const favorites = user.favorites || [];
+  if (favorites.length === 0) return { favorites: [], message: "Aucun crypto suivi." };
 
-    const favorites = user.favorites || [];
+  const cryptos = await CryptoModel.find({ _id: { $in: favorites } }).lean();
 
-    if (favorites.length === 0) {
-        return {favorites: [], message: "Aucun crypto suivis."};
-    }
+  const dashboard = await Promise.all(
+    cryptos.map(async (crypto) => {
+      const snapshot = await MarketSnapshotModel.findOne({
+        asset: crypto._id,
+        vsCurrency: vs_currency
+      }).sort({ capturedAt: -1 }).lean();
 
-    const data = await getMarkets({
-        vs_currency,
-        ids: favorites.join(","),
-        order: "market_cap_desc",
-        per_page:favorites.length,
-        page: 1,
-        price_change_percentage: "24h"
-    });
+      return {
+        id: crypto._id,
+        name: crypto.name,
+        symbol: crypto.symbol,
+        price: snapshot?.currentPrice || null,
+        marketCap: snapshot?.marketCap || null,
+        volume: snapshot?.totalVolume || null,
+        change24h: snapshot?.priceChangePercentage24h || null,
+        image: crypto.image || null
+      };
+    })
+  );
 
-    const dashboard = data.map(c => ({
-        id: c.id,
-        name: c.name,
-        symbol: c.symbol,
-        price: c.current_price,
-        marketCap: c.market_cap,
-        volume: c.total_volume,
-        change24h: c.price_change_percentage_24h,
-        image: c.image
-    }));
-
-    return { favorites: dashboard };
+  return { favorites: dashboard };
 }
