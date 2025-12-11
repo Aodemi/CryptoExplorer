@@ -3,6 +3,13 @@ import { UserModel } from "../models/User";
 import { CryptoModel } from "../models/Crypto";
 import { MarketSnapshotModel } from "../models/MarketSnapshot";
 
+// Fonction qui construit le dashboard => Récupère les cryptos suivis, dernier snapshot, résumer complet
+// Récupère utilisateur
+// Récupère cryptos favoris
+// Récupère crypto dans la BD
+// Générer dashboard pour chaque crypto
+// Récupère dernier snapshot pour chaque crypto
+// Construire l'objet final pour dashboard
 export async function getUserDashboard(userId: string, vs_currency = "usd") {
   const user = await UserModel.findById(userId).lean();
   if (!user) throw new Error("Utilisateur introuvable");

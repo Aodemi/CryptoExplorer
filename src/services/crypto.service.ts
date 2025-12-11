@@ -3,12 +3,18 @@ import { MarketSnapshotModel } from "../models/MarketSnapshot";
 import axios from "axios";
 
 
+// Paramètre utilisés pour les services
 interface ListCryptosParams {
   page?: number;
   limit?: number;
   search?: string;
 }
 
+// Fonction qui va rechercher les cryptos (avec filtre)
+// Recherche avec regex pour que ça soit plus préçis 
+// Filtre avec nom (sinon renvoie tout)
+// Compte nombre d'éléments trouvés selon le filtre
+// Récupère les cryptos avec filtre et renvoie le résultat
 export async function getCryptos({
   page = 1,
   limit = 20,
@@ -42,7 +48,11 @@ export async function getCryptos({
 }
 
 
-
+// Fonction pour récupérer l'historique
+// Recherche la crypto dans la BD
+// Calcule la date
+// Recherche des snapshots dans l'historique
+// Renvoie résultat
 export async function getHistoryFromDB(coinId: string, days = 30) {
   const crypto = await CryptoModel.findOne({ coingeckoId: coinId });
   if (!crypto) throw new Error("Crypto introuvable dans la BD");
@@ -60,7 +70,11 @@ export async function getHistoryFromDB(coinId: string, days = 30) {
   return snapshots.map(s => s.currentPrice);
 }
 
-
+// Fonction calcul SMA (Moyenne Mobile Simple)
+// Calcul SMA de chaque crypto
+// Extrait des derniers points
+// Calcule la moyenne 
+// Ajoute SMA dans le résultat et retourne résultat
 export function computeSMA(data: number[], period: number): number[] {
   const result: number[] = [];
   for (let i = period; i <= data.length; i++) {
@@ -71,7 +85,9 @@ export function computeSMA(data: number[], period: number): number[] {
   return result;
 }
 
-
+// Fonction calcule Volatility 
+// Calcule moyenne des prix
+// Calcule la variance & Retourne racine carré de la variance
 export function computeVolatility(data: number[]): number {
   const mean = data.reduce((a, b) => a + b, 0) / data.length;
   const variance =
@@ -79,7 +95,14 @@ export function computeVolatility(data: number[]): number {
   return Math.sqrt(variance);
 }
 
-
+// Fonction qui note une crypto selon les critères suivants => SMA, Volatility, Variance, prix
+// Vérifie l'historique
+// Récupère prix initial et final
+// Calcul variation et ajout / retrait point
+// Calcul moyenne prix 
+// Calcul volatilité et ajout / retrait point 
+// Normalisation score sur 100
+// Message selon nombre de points
 export function calculerNoteCrypto(coinId: string, history: number[]) {
   if (!history || history.length === 0) {
     throw new Error("Historique introuvable");
