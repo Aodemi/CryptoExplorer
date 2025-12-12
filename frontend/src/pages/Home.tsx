@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
-import { coingeckoApi } from "../services/fetchData";
+import { coingeckoApiLocal, coingeckoApi } from "../services/fetchData";
 
 export default function Home() {
   const { user, favorites } = useAuth();
@@ -11,7 +11,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [favorites]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -63,31 +63,10 @@ export default function Home() {
       </div>
 
       <div>
-        <h2> Top 5 Favoris</h2>
-        {favoritesData.length === 0 ? (
-          <p>Ajoutez des cryptos aux favoris</p>
-        ) : (
-          <div>
-            {favoritesData.map((crypto) => (
-              <div key={crypto.id} style={{marginBottom: "10px"}}>
-                <strong>{crypto.name}</strong>
-                {crypto.symbol && <span> ({crypto.symbol.toUpperCase()})</span>}
-                {crypto.current_price != null ? (
-                  <div>Prix: ${crypto.current_price}</div>
-                ) : (
-                  <div>Prix: N/A</div>
-                )}
-                <Link to={`/analyse/${crypto.id}`}>Voir</Link>
-              </div>
-            ))}
-            
-            {favorites.length > 5 && (
-              <div>
-                <Link to="/favorites">Voir tous</Link>
-              </div>
-            )}
-          </div>
-        )}
+        <h2> Vos Favoris</h2>
+        <Link to="http://localhost:5173/favorites">Voir tous les favoris</Link>
+        
+        
       </div>
 
       

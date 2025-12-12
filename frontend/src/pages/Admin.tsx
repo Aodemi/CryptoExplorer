@@ -68,8 +68,8 @@ export default function Admin() {
                             <th style={{ padding: "10px", textAlign: "left" }}>Rôle</th>
                             <th style={{ padding: "10px", textAlign: "left" }}>Actions</th>
                         </tr>
-                        </thead>
-                        <tbody>
+                    </thead>
+                    <tbody>
                         {users.map((u) => (
                             <tr key={u._id} style={{ borderBottom: "1px solid #ddd" }}>
                                 <td style={{ padding: "10px" }}>{u.username}</td>
@@ -87,12 +87,12 @@ export default function Admin() {
                                 <td style={{ padding: "10px" }}>
                                     <button
                                         onClick={() => deleteUser(u._id)}
-                                        style={{ padding: "5px 10px", backgroundColor: "#ff4d4f", color: "#fff", border: "none", cursor: "pointer" }}   
+                                        style={{ padding: "5px 10px", backgroundColor: "#ff4d4f", color: "#fff", border: "none", cursor: "pointer" }}
                                     >Supprimer</button>
                                 </td>
                             </tr>
                         ))}
-                        </tbody>
+                    </tbody>
                 </table>
             )}
         </div>
