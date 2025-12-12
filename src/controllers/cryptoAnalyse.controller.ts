@@ -1,4 +1,3 @@
-// src/controllers/cryptoAnalyse.controller.ts
 import { Request, Response } from "express";
 import { 
   getHistoryFromDB, 
@@ -7,6 +6,11 @@ import {
   calculerNoteCrypto 
 } from "../services/crypto.service";
 
+// Controller pour l'analyse des cryptos
+// Récupère historique dans la BD
+// Extrait les prix
+// Récupère données (variance, moyenne mobile, Volatilité)
+// Retourne résultat
 export async function analyseCrypto(req: Request, res: Response) {
   try {
     const { id } = req.params;

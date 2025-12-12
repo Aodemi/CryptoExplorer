@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { getCryptos } from "../services/crypto.service";
 
+// Controller pour liste des cryptos
+// Récupère les cryptos dans la BD
+// Gère page (pagination + filtrage)
+// Envoie la réponse
 export async function listCryptosDB(req: Request, res: Response) {
   try {
     const page = Number(req.query.page) || 1;
@@ -16,6 +20,11 @@ export async function listCryptosDB(req: Request, res: Response) {
   }
 }
 
+// Controller rechercher les cryptos
+// Récupère le crypto qu'on recherche
+// Nettoie la valeur
+// Appelle le service pour chercher la crypto
+// Retourne résultat
 export async function rechercherCrypto(req: Request, res: Response) {
   try {
     const search = req.params.name; 
