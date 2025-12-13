@@ -1,5 +1,7 @@
 # CryptoExplorer
 
+### Certaines fonctionnalités sont manquantes, mais nous avancons dessus. Nous aimerions que vous soyez compréhensive pour le léger retard étant donné que nous ne sommes que 3 dans l'équipe. Merci
+
 ## Démarrage
 
 1. Copier `.env.example` en `.env` et ajuster les variables.
