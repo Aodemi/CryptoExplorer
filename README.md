@@ -25,6 +25,11 @@ npm run dev
 - `POST /api/markets/convertToNewModel` — Convertit les marchés live en entrées stockées (snapshots)
 - `GET /api/cryptos` — Liste des cryptomonnaies stockées
 
+- `POST /api/admin/create-admin` — Crée l'admin
+- `GET /api/admin/users` — Liste des utilisateurs stockées
+- `DELETE /api/admin/users/:id` — Supprimer un utilisateur
+- `PATCH /api/admin/:id/role` — Modifie le role d'un user
+
 ## Config
 - CORS / limite de requêtes via `config/default.json`
 - Connexion Mongo via `MONGO_URI` (.env)
@@ -34,3 +39,11 @@ npm run dev
 npm run build
 npm start
 ```
+
+## Gestion des utilisateurs
+Dans postman, lancer la route : 
+http://localhost:3001/api/admin/create-admin
+
+Connectez vous avec les infos suivantes  :
+email: "admin@gmail.com",
+password: "test123

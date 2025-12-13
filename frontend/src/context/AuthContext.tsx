@@ -9,6 +9,9 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => void;
+  favorites: string[];
+  addFavorite: (coinId: string) => Promise<void>;
+  removeFavorite: (coinId: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,9 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     api.setToken(token);
   }, [token]);
 
+  const favorites = (user?.favorites ?? []).map(String);
+
   const value = useMemo<AuthContextType>(() => ({
     token,
     user,
+    favorites,
     async login(email: string, password: string) {
       const res = await api.post("/auth/login", { email, password });
       setToken(res.token);
@@ -46,8 +52,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+    },
+    async addFavorite(coinId: string) {
+      if (!token || !user) return;
+      const res = await api.post("/users/favorites", { coinId });
+      const nextUser = { ...user, favorites: res.favorites } as NonNullable<User>;
+      setUser(nextUser);
+      localStorage.setItem("user", JSON.stringify(nextUser));
+    },
+    async removeFavorite(coinId: string) {
+      if (!token || !user) return;
+      const res = await api.delete(`/users/favorites/${encodeURIComponent(coinId)}`);
+      const nextUser = { ...user, favorites: res.favorites } as NonNullable<User>;
+      setUser(nextUser);
+      localStorage.setItem("user", JSON.stringify(nextUser));
     }
-  }), [token, user]);
+  }), [token, user, favorites]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

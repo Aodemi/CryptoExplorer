@@ -1,16 +1,112 @@
-:root { color-scheme: light dark; font-family: Inter, system-ui, Avenir, Arial, sans-serif; }
-body { margin: 0; }
-.nav { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #333; }
-.nav nav { display: flex; gap: 12px; }
-.spacer { flex: 1; }
-.user-area { display: flex; gap: 10px; align-items: center; }
-.container { max-width: 960px; margin: 20px auto; padding: 0 16px; }
-.auth-card { max-width: 420px; margin: 40px auto; padding: 20px; border: 1px solid #333; border-radius: 8px; }
-form { display: grid; gap: 12px; }
-label { display: grid; gap: 6px; }
-input { padding: 8px 10px; border-radius: 6px; border: 1px solid #555; }
-button { padding: 8px 14px; }
-.error { color: #ff6b6b; }
-.list { list-style: none; padding: 0; display: grid; gap: 8px; }
-.list li { display: flex; justify-content: space-between; padding: 10px; border: 1px solid #333; border-radius: 8px; }
-.card { border: 1px solid #333; padding: 12px; border-radius: 8px; }
+section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+:root {
+    color-scheme: light dark;
+    font-family: Inter, system-ui, Avenir, Arial, sans-serif;
+}
+
+body {
+  background: #252e38;
+  color: #ffffff;
+  }
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #333;
+}
+
+.nav nav {
+    display: flex;
+    gap: 12px;
+      align-items: center;
+
+}
+.active-link {
+    background: #1e40af;
+    color: #93c5fd;
+  }
+.nav-link {
+    color: #cbd5e1;
+  }
+ .nav-link:hover {
+    background: #334155;
+    color: #60a5fa;
+  }
+  
+
+.spacer {
+    flex: 1;
+}
+
+.user-area {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.container {
+    max-width: 960px;
+    margin: 20px auto;
+    padding: 0 16px;
+}
+
+.auth-card {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 20px;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+form {
+    display: grid;
+    gap: 12px;
+}
+
+label {
+    display: grid;
+    gap: 6px;
+}
+
+input {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #555;
+}
+
+button {
+    padding: 8px 14px;
+}
+
+.error {
+    color: #ff6b6b;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.list li {
+    display: flex;
+    justify-content: space-between;
+      align-items: center;
+
+    padding: 10px;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+.card {
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+}
