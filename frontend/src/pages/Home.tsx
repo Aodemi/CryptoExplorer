@@ -1,75 +1,68 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
-import { coingeckoApiLocal, coingeckoApi } from "../services/fetchData";
+import { coingeckoApi } from "../services/fetchData";
+import CryptoCompareChart from "../components/CryptoCompareChart";
 
 export default function Home() {
-  const { user, favorites } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [top5, setTop5] = useState<any[]>([]);
-  const [favoritesData, setFavoritesData] = useState<any[]>([]);
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [comparisonChartData, setComparisonChartData] = useState<any>(null);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [favorites]);
+  }, []);
 
   const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      const topData = await coingeckoApi.get("usd", 1, 5);
-      setTop5(topData);
-      
-      if (favorites.length > 0) {
-        const favsToLoad = favorites.slice(0, 5);
-        const favsData = favsToLoad.map(favId => {
-          const found = topData.find((crypto: any) => crypto.id === favId);
-          if (found) return found;
-          return { id: favId, name: "Inconnu", symbol: "", current_price: null };
-        });
-        setFavoritesData(favsData);
-      }
-    } catch (error) {
-      console.error("Erreur:", error);
-    } finally {
-      setLoading(false);
+  try {
+    const topData = await coingeckoApi.get("usd", 1, 5);
+
+    if (!Array.isArray(topData)) {
+      console.error("topData n'est pas un tableau:", topData);
+      setComparisonChartData(null);
+      return;
     }
-  };
+   const labels = topData.map(c => c.symbol?.toUpperCase() || "");
+      const prices = topData.map(c => c.current_price || 0);
+    
+   setComparisonChartData({
+        labels,
+        datasets: [{
+          label: 'Comparaison par prix Prix ',
+          data: prices,
+          backgroundColor: ['#5c4d51ff', '#5abe2bff', '#FFCE56', '#e100ffff', '#9966FF']
+        }]
+      });
+  } catch (error) {
+    console.error("Erreur:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (loading) {
     return <div>Chargement...</div>;
   }
 
   return (
-    <section>
+    <section style={{ padding: "20px" }}>
       <div>
         <h1>Bienvenue sur CryptoExplorer, {user ? user.username : "Invité"}</h1>
       </div>
 
       <div>
-        <h2> Top 5 Global</h2>
-        {top5.length === 0 ? (
-          <p>Aucune donnée trouvée</p>
+        <h2>Comparaison des Top 5 Cryptos (Prix actuels)</h2>
+        {comparisonChartData ? (
+          <CryptoCompareChart comparisonData={comparisonChartData} />
         ) : (
-          <div>
-            {top5.map((crypto) => (
-              <div key={crypto.id} style={{marginBottom: "10px"}}>
-                <strong>{crypto.name}</strong> ({crypto.symbol.toUpperCase()})
-                <div>Prix: ${crypto.current_price}</div>
-                <Link to={`/analyse/${crypto.id}`}>Analyser</Link>
-              </div>
-            ))}
-          </div>
+          <p>Aucune donnée pour le graphique</p>
         )}
       </div>
 
-      <div>
-        <h2> Vos Favoris</h2>
-        <Link to="http://localhost:5173/favorites">Voir tous les favoris</Link>
-        
-        
+      <div style={{ marginTop: "30px" }}>
+        <Link to="/favorites">Voir tous les favoris</Link>
       </div>
-
-      
     </section>
   );
 }

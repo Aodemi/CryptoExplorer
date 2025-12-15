@@ -1,5 +1,5 @@
 import { api } from "../api/client";
-const BASE_URL ="https://api.coingecko.com/api/v3";
+const BASE_URL = "https://api.coingecko.com/api/v3";
 
 export const coingeckoApiLocal = {
     async getCryptos(page = 1, limit = 50) {
@@ -24,7 +24,7 @@ export const coingeckoApiLocal = {
 
     },
 
-    async getCryptoById(id: string, period = 7) {
+    async getCryptoById(id: string) {
         const result = await api.get(`/cryptos/search/${id}`);
         let data = [];
         if (Array.isArray(result)) {
@@ -32,13 +32,20 @@ export const coingeckoApiLocal = {
         } else if (result && Array.isArray(result.data)) {
             data = result.data;
         }
- const crypto = data.find((c: any) => 
-        c.coingeckoId === id ||  
-        c.id === id || 
-        c._id === id
-    );
-            return crypto ;
-    },
+        if (!result || result.message === "Crypto non trouvée") {
+            console.log("Recherche directe échouée, tentative liste complète...");
+
+            const crypto = data.find((c: any) => {
+                return c.coingeckoId === id || c.id === id || c._id === id;
+            });
+
+            return crypto || null;
+        }
+
+        return result;
+    }
+
+    ,
     async getCryptoAnalysis(id: string, period = 7) {
         return await api.get(`/cryptos/analyse/${id}?period=${period}`);
     },

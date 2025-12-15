@@ -78,7 +78,7 @@ export default function CryptoChart({ cryptoName, cryptoId }: CryptoChartProps) 
       },
       title: {
         display: true,
-        text: `Évolution sur 7 jours - ${cryptoName}`
+        text: 'Évolution sur 7 jours '
       }
     },
     scales: {
