@@ -12,7 +12,7 @@ export default function Analyse() {
     const { user, favorites, addFavorite, removeFavorite } = useAuth();
 
     useEffect(() => {
-        console.log("🔄 Analyse - ID:", id);
+        console.log("Analyse - ID:", id);
         if (id) {
             fetchCryptoData(id);
         }
@@ -46,7 +46,7 @@ export default function Analyse() {
                     image: response.image?.small
                 };
 
-                console.log("🔄 Données pour affichage:", cryptoData);
+                console.log("Données pour affichage:", cryptoData);
                 setCrypto(cryptoData);
             } else {
                 console.warn("coinGecko n'a pas trouvé:", coinId);
@@ -57,6 +57,9 @@ export default function Analyse() {
             setLoading(false);
         }
     };
+
+    
+
 
     if (loading) {
         return <div className="container">Chargement...</div>;
@@ -92,6 +95,11 @@ export default function Analyse() {
             <div className="card" style={{ marginBottom: "30px" }}>
                 <h3>Graphique des prix</h3>
                 <CryptoChart cryptoName={crypto.name} cryptoId={crypto.id} />
+            </div>
+
+            <div>
+                <h3>Note</h3>
+                <p></p>
             </div>
         </div>
     );

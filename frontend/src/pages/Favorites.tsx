@@ -64,7 +64,7 @@ export default function Favorites() {
                                 <li key={id}>
                                     <span>{id}</span>
                                     <button onClick={() => removeFavorite(id)}>Retirer des favoris</button>
-                                    <Link to={`/analyse/${id}`}>Voir l'analyse</Link>
+                                    <Link to={`/analyse/${id}`}>Analyser</Link>
                                 </li>
                             ))}
                         </ul>
