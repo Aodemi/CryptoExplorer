@@ -28,7 +28,7 @@ connectDB().then(async () => {
   console.log("MongoDB connecté !");
 
   // 🔹 AJOUT : import automatique des cryptos dès le démarrage
-  await importMarketsToDB();
+  //await importMarketsToDB();
 
   server.listen(port, () => {
     console.log(`Server listening at ${protocol}://localhost:${port}`);
