@@ -9,9 +9,9 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": ["node", "jest"],
     "lib": ["ES2020"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "jest.config.js"],
   "exclude": ["node_modules", "dist"]
 }
