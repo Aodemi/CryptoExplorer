@@ -8,8 +8,3 @@ certs/*.pem
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
-
-# Data dumps / large generated files
-data/
-data/*.json
-*.wbk
