@@ -1,79 +1,99 @@
 # CryptoExplorer
 
-## Guide de démarrage
+Ce guide vous indique comment lancer le projet, appeler les endpoints, et importer les données de marché. Vous devez suivre les étapes ci‑dessous pour une mise en route rapide.
 
-1. Copier `.env.example` en `.env` et ajuster les variables.
-2. Installer les dépendances.
-3. Lancer en développement.
-4. Changer de répertoire pour aller dans le dossier frontend et recommencer.
+## Prérequis
+- Vous devez avoir Node.js et npm installés.
+- Vous devez avoir MongoDB en local (par défaut: `mongodb://localhost:27017`).
+- Vous devez disposer d’une clé CoinGecko (facultatif, le projet inclut une clé par défaut pour les tests).
+
+## Installation et démarrage (backend + frontend)
+Vous devez préparer l’environnement, installer les dépendances et démarrer les deux parties.
 
 ```powershell
+# Backend
 Copy-Item .env.example .env
 npm install
 npm run dev
-```
 
-```powershell
+# Frontend
 cd frontend
 Copy-Item .env.example .env
 npm install
 npm run dev
 ```
 
-## Endpoints
-- `GET /api/markets` — Données de marché en direct depuis CoinGecko
-- `POST /api/markets/convertToNewModel` — Convertit les marchés live en entrées stockées (snapshots)
-- `GET /api/cryptos` — Liste des cryptomonnaies stockées
-
-- `POST /api/admin/create-admin` — Crée l'admin
-- `GET /api/admin/users` — Liste des utilisateurs stockées
-- `DELETE /api/admin/users/:id` — Supprimer un utilisateur
-- `PATCH /api/admin/:id/role` — Modifie le role d'un user
-
-## Config
-- CORS / limite de requêtes via `config/default.json`
-- Connexion Mongo via `MONGO_URI` (.env)
-
-## Build / Démarrage
+Pour un build de production backend:
 ```powershell
 npm run build
 npm start
 ```
 
-### Gestion des utilisateurs
+## Import des MarketSnapshots (3 mois)
+Vous devez importer les données de marché soit en lançant le script, soit en important le fichier fourni.
 
-- Dans postman, lancer la route : 
+Option A — Script automatique:
+- Le script efface les snapshots existants puis importe ~90 jours pour les 50 principales cryptos.
+```powershell
+npm run populateDB
 ```
-http://localhost:3001/api/admin/create-admin
+
+Option B — Import depuis un fichier fourni (data)
+- Si vous avez reçu un fichier JSON dans le dossier `data` avec le rapport, vous devez l’importer manuellement dans mongoDB.
+
+## Endpoints principaux (backend)
+Vous devez remplacer l’hôte selon votre environnement (local ou déployé). Les routes protégées nécessitent un `token` JWT.
+
+- Public:
+	- `GET /` — Ping
+	- `GET /api/cryptos` — Liste des cryptos
+	- `GET /api/markets` — Données de marché en direct (CoinGecko)
+
+- Authentification:
+	- `POST /api/auth/register` — Inscription
+	- `POST /api/auth/login` — Connexion (retourne `token`)
+
+- Favoris / Profil:
+	- `GET /api/user/me` — Profil utilisateur
+	- `POST /api/user/favorites` — Ajouter un favori
+	- `GET /api/user/favorites` — Lister les favoris
+	- `DELETE /api/user/favorites/:id` — Retirer un favori
+
+- Admin:
+	- `POST /api/admin/create-admin` — Créer l’admin initial
+	- `GET /api/admin/users` — Lister les utilisateurs
+	- `DELETE /api/admin/users/:id` — Supprimer un utilisateur
+	- `PATCH /api/admin/:id/role` — Modifier le rôle d’un utilisateur
+
+## Postman et Swagger
+Vous devez utiliser ces documents pour valider l’API.
+- Swagger: [docs/swagger.json](docs/swagger.json)
+- Postman: [docs/postman/CryptoExplorer.postman_collection.json](docs/postman/CryptoExplorer.postman_collection.json)
+- Environnements Postman: [docs/postman/CryptoExplorer.local.postman_environment.json](docs/postman/CryptoExplorer.local.postman_environment.json)
+
+## Configuration
+Vous devez vérifier et adapter la configuration si nécessaire.
+- Fichier: [config/default.json](config/default.json)
+- Variables d’environnement: `.env` (ex: `MONGO_URI`, `JWT_SECRET`, `PORT`)
+
+## Tests et charge
+Vous devez exécuter les tests et le test de charge si demandé.
+```powershell
+npm test --verbose
+npm run load:test
 ```
 
-- Connectez vous avec les infos suivantes  :
-email: "admin@gmail.com",
-password: "admin123"
-
-
-### Tests
-Installer Jest
+## Logs
+Par défaut, les logs s’affichent en console. Vous devez produire des fichiers de logs via PowerShell si requis:
+```powershell
+New-Item -ItemType Directory -Force -Path .\logs
+npm run dev | Tee-Object -FilePath .\logs\server.log
+npm run populateDB | Tee-Object -FilePath .\logs\populate.log
+npm run load:test | Tee-Object -FilePath .\logs\loadtest.log
 ```
-npm install --save-dev jest ts-jest @types/jest @types/node
-```
-Ces tests ont été effectués a partir d'une base de donnée distante (appellée dbtest). Entre les tests, on nettoie la bd et a la fin des tests, on ferme la connexion qu'on a ouverte avant le début des tests
 
-
-
- Tests avec base de données réelle, nettoyage automatique entre tests, vérification des données persistées.
-
- #### Tests de gestions d'utilisateurs (AdminController)
-
-
-1- Creation de l'admin : Verifie si l'admin a bel et bien été crée et si son username est bel et bien admin
-2- Liste des utilisateurs : Cree des utilisateur et s'Assure qu'il ya au moins 1 utilisateur affiché et son email corresponds a l'email de l'user crée
-3- Suppression d'un utilisateur : Cree un utilisateur, le supprime et s'assure qu'il a bel et bein affiché le message de suppression et qu'il est maintenant NULL
-4- Modifier le role d'un utilisateur: Cree un utilisateur et modifie son rolet pour ensuite s'Assurer que son role a bel et bien changé 
-
- #### Tests pour la liste de cryptomonnaies (ListCryptoController)
-
-1- Liste des cryptomonnaies : Cree 2 crypto, les listes et s'Assure que le nombre de cryptomonnaie correspond au nombre de cryptos crée/importés
+## Notes
+- Le script d’import attend 60s sur les erreurs 429 (limites CoinGecko). MongoDB doit être lancé.
 
 
 
