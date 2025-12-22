@@ -11,7 +11,8 @@
     "test": "jest --verbose",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "load:test": "artillery run artillery.yml"
+    "load:test": "artillery run artillery.yml",
+    "populateDB": "ts-node-dev --transpile-only src/scripts/populateDB.ts"
   },
   "dependencies": {
     "@types/bcrypt": "^6.0.0",
