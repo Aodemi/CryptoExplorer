@@ -2,7 +2,11 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { CryptoModel } from '../models/Crypto';
 import { listCryptos } from '../controllers/crypto.controller';
+import { rechercherCrypto } from '../controllers/listCrypto.controller';
+import { getCryptos } from '../services/crypto.service';
 import { describe } from 'node:test';
+
+jest.mock('../services/crypto.service');
 
 
 describe('Liste des cryptomonnaies', () => {
@@ -36,4 +40,24 @@ describe('Liste des cryptomonnaies', () => {
         expect(response.data[0].name).toBe('Bitcoin');
         expect(response.data[1].name).toBe('Ethereum');
     });
+
+        it('retourne 400 si terme de recherche vide', async () => {
+                const req = { params: { name: '   ' } } as any as Request;
+                const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any as Response;
+    
+                await rechercherCrypto(req, res);
+    
+                expect(res.status).toHaveBeenCalledWith(400);
+            });
+    
+        it('retourne 404 si aucune crypto trouvée', async () => {
+                (getCryptos as jest.Mock).mockResolvedValue({ count: 0, data: [] });
+    
+                const req = { params: { name: 'notfound' } } as any as Request;
+                const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any as Response;
+    
+                await rechercherCrypto(req, res);
+    
+                expect(res.status).toHaveBeenCalledWith(404);
+            });
 });

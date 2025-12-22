@@ -1,0 +1,16 @@
+config:
+  target: "http://localhost:3001"
+  phases:
+    - duration: 20
+      arrivalRate: 5
+      name: warm-up
+    - duration: 60
+      arrivalRate: 20
+      name: ramp
+scenarios:
+  - name: Public endpoints
+    flow:
+      - get:
+          url: "/"
+      - get:
+          url: "/api/cryptos/api?page=1&limit=5"

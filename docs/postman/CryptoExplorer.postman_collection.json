@@ -1,124 +1,426 @@
 {
-  "info": {
-    "_postman_id": "7f6d5c2e-41a0-4f3b-8c31-cryptoexplorer-local",
-    "name": "CryptoExplorer Local",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Local API requests for CryptoExplorer: register, login, seed, and crypto GETs."
-  },
-  "item": [
-    {
-      "name": "Auth / Register",
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "const ts = Date.now();",
-              "pm.variables.set('regEmail', `alice+${ts}@test.dev`);",
-              "pm.variables.set('regUsername', `alice${ts}`);",
-              "if (!pm.environment.get('password')) pm.environment.set('password', 'Passw0rd!');"
-            ]
-          }
-        },
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status is 201/200', function () {",
-              "  pm.expect(pm.response.code === 201 || pm.response.code === 200).to.be.true;",
-              "});",
-              "try {",
-              "  const json = pm.response.json();",
-              "  if (json.token) pm.environment.set('token', json.token);",
-              "} catch (e) {}"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"{{regEmail}}\",\n  \"username\": \"{{regUsername}}\",\n  \"password\": \"{{password}}\"\n}"
-        }
-      }
-    },
-    {
-      "name": "Auth / Login",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
-              "try {",
-              "  const json = pm.response.json();",
-              "  if (json.token) pm.environment.set('token', json.token);",
-              "} catch (e) {}"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [ { "key": "Content-Type", "value": "application/json" } ],
-        "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"{{regEmail}}\",\n  \"password\": \"{{password}}\"\n}"
-        }
-      }
-    },
-    {
-      "name": "Seed / Convert To New Model (protected)",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{token}}" }
-        ],
-        "url": { "raw": "{{baseUrl}}/markets/convertToNewModel", "host": ["{{baseUrl}}"], "path": ["markets", "convertToNewModel"] },
-        "body": { "mode": "raw", "raw": "{\n  \"vs_currency\": \"usd\"\n}" }
-      }
-    },
-    {
-      "name": "Cryptos / Get (protected)",
-      "request": {
-        "method": "GET",
-        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-        "url": { "raw": "{{baseUrl}}/cryptos", "host": ["{{baseUrl}}"], "path": ["cryptos"] }
-      }
-    },
-    {
-      "name": "Cryptos / Public DB list",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "{{baseUrl}}/cryptos/api?limit=10", "host": ["{{baseUrl}}"], "path": ["cryptos", "api"], "query": [ { "key": "limit", "value": "10" } ] }
-      }
-    },
-    {
-      "name": "Cryptos / Search (public)",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "{{baseUrl}}/cryptos/search/bitcoin", "host": ["{{baseUrl}}"], "path": ["cryptos", "search", "bitcoin"] }
-      }
-    },
-    {
-      "name": "Cryptos / Analyse (public but requires data)",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "{{baseUrl}}/cryptos/analyse/bitcoin?period=7", "host": ["{{baseUrl}}"], "path": ["cryptos", "analyse", "bitcoin"], "query": [ { "key": "period", "value": "7" } ] }
-      }
-    }
-  ],
-  "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3001/api" }
-  ]
+	"info": {
+		"_postman_id": "8e5b6fa0-8d18-4da6-abeb-9c4bfe127e05",
+		"name": "CryptoExplorer API",
+		"description": "Backend-only endpoints for CryptoExplorer. Use only {{baseUrl}} and {{token}} environment variables.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43992562",
+		"_collection_link": "https://mitz-6273027.postman.co/workspace/Mitz's-Workspace~db5b3f1d-3479-4e8c-8d89-e4ed8214454c/collection/43992562-8e5b6fa0-8d18-4da6-abeb-9c4bfe127e05?action=share&source=collection_link&creator=43992562"
+	},
+	"item": [
+		{
+			"name": "Auth / Register (user: postman@gmail.com)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status 201 or 409 (already exists)', function () {",
+							"  pm.expect([201,409]).to.include(pm.response.code);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"postman@gmail.com\",\n  \"username\": \"postman\",\n  \"password\": \"Passw0rd!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth / Login (user: postman@gmail.com)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+							"try { const json = pm.response.json(); if (json.token) pm.environment.set('token', json.token); } catch (e) {}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"postman@gmail.com\",\n  \"password\": \"Passw0rd!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin / Register Admin (admin@gmail.com)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status is 201', function () { pm.response.to.have.status(201); });"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"admin@gmail.com\",\n  \"username\": \"adminpostman\",\n  \"password\": \"Admin1234\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/create-admin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"create-admin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth / Login (admin@gmail.com) -> sets {{token}}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+							"try { const json = pm.response.json(); if (json.token) pm.environment.set('token', json.token); } catch (e) {}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"admin@gmail.com\",\n  \"password\": \"Admin1234\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Users / Favorites (GET) for postman@gmail.com",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/users/favorites",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"favorites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Users / Favorites (ADD bitcoin) for postman@gmail.com",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"coinId\": \"bitcoin\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/favorites",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"favorites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Users / Favorites (REMOVE bitcoin) for postman@gmail.com",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/users/favorites/bitcoin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"favorites",
+						"bitcoin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cryptos / Get (protected)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/cryptos",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"cryptos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cryptos / Public DB list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/cryptos/api?limit=10",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"cryptos",
+						"api"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cryptos / Search (public)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/cryptos/search/bitcoin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"cryptos",
+						"search",
+						"bitcoin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cryptos / Analyse (Nécéssite les données. Marche en local seulement)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/cryptos/analyse/bitcoin?period=7",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"cryptos",
+						"analyse",
+						"bitcoin"
+					],
+					"query": [
+						{
+							"key": "period",
+							"value": "7"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin / Users List (ADMIN)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/admin/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin / Modify User Role (ADMIN)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"role\": \"admin\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/users/MettreIdUser/role",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"users",
+						"MettreIdUser",
+						"role"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin / Delete User (ADMIN)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/admin/users/USER_ID_HERE",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"users",
+						"USER_ID_HERE"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001/api"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
 }
