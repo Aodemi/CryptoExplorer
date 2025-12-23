@@ -1,0 +1,351 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API CryptoExplorer",
+    "version": "0.2.0"
+  },
+  "servers": [
+    { "url": "http://localhost:3001" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "example": "admin@gmail.com" },
+          "password": { "type": "string", "example": "admin123" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "username", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "username": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "example": {
+          "email": "user@test.com",
+          "username": "testUser",
+          "password": "password123"
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string" },
+          "username": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "admin"] },
+          "favorites": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/User" }
+        },
+        "example": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "user": {
+            "id": "665f1a9a9b1c9d001234abcd",
+            "email": "admin@gmail.com",
+            "username": "admin",
+            "role": "admin",
+            "favorites": []
+          }
+        }
+      },
+      "Crypto": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "coingeckoId": { "type": "string" },
+          "symbol": { "type": "string" },
+          "name": { "type": "string" },
+          "image": { "type": "string" }
+        }
+      },
+      "CryptoPaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "totalPages": { "type": "integer" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Crypto" }
+          }
+        },
+        "example": {
+          "page": 1,
+          "limit": 20,
+          "total": 1,
+          "totalPages": 1,
+          "data": [
+            {
+              "_id": "665f2c1a9b1c9d00aaabbbcc",
+              "coingeckoId": "bitcoin",
+              "symbol": "btc",
+              "name": "Bitcoin",
+              "image": "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
+            }
+          ]
+        }
+      },
+      "CryptoAnalysisResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "period": { "type": "integer" },
+          "prices": { "type": "array", "items": { "type": "number" } },
+          "sma": { "type": "array", "items": { "type": "number" } },
+          "volatility": { "type": "number" },
+          "successScore": { "type": "integer" },
+          "variation": { "type": "number" },
+          "message": { "type": "string" },
+          "daysAnalyzed": { "type": "integer" }
+        },
+        "example": {
+          "id": "bitcoin",
+          "period": 7,
+          "prices": [64000, 64500, 65000, 64800],
+          "sma": [64575],
+          "volatility": 320.12,
+          "successScore": 78,
+          "variation": 1.56,
+          "message": "Probabilité élevée de succès pour cette crypto",
+          "daysAnalyzed": 4
+        }
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Connexion et obtention du JWT",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants invalides",
+            "content": {
+              "application/json": {
+                "example": { "error": "Identifiants invalides" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Inscription et obtention du JWT",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Lister tous les utilisateurs",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": "665f1a9a9b1c9d001234abcd",
+                    "email": "admin@gmail.com",
+                    "username": "admin",
+                    "role": "admin"
+                  }
+                ]
+              }
+            }
+          },
+          "403": { "description": "Accès admin requis" }
+        }
+      }
+    },
+
+    "/api/admin/users/{id}": {
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Supprimer un utilisateur",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "665f1b1a9b1c9d00999abcde" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Utilisateur supprimé",
+            "content": {
+              "application/json": {
+                "example": { "message": "Utilisateur supprimé avec succès" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/admin/users/{id}/role": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Modifier le rôle utilisateur",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "role": "admin" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Rôle modifié avec succès" }
+        }
+      }
+    },
+
+    "/api/cryptos/api": {
+      "get": {
+        "tags": ["Cryptos"],
+        "summary": "Lister les cryptos stockées (DB)",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer" }, "example": 1 },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" }, "example": 20 },
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "example": "bitcoin" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CryptoPaginatedResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/cryptos/search/{name}": {
+      "get": {
+        "tags": ["Cryptos"],
+        "summary": "Rechercher une crypto par nom",
+        "parameters": [
+          { "name": "name", "in": "path", "required": true, "schema": { "type": "string" }, "example": "bitcoin" }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "404": { "description": "Crypto non trouvée" }
+        }
+      }
+    },
+
+    "/api/cryptos/analyse/{id}": {
+      "get": {
+        "tags": ["Analyse"],
+        "summary": "Analyse technique crypto",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "bitcoin" },
+          { "name": "period", "in": "query", "schema": { "type": "integer" }, "example": 7 }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CryptoAnalysisResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/cryptos/dashboard": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Dashboard utilisateur",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "favorites": [
+                    {
+                      "id": "665f2c1a9b1c9d00aaabbbcc",
+                      "name": "Bitcoin",
+                      "symbol": "btc",
+                      "price": 65000,
+                      "marketCap": 1200000000,
+                      "volume": 35000000,
+                      "change24h": 2.4,
+                      "image": "https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
