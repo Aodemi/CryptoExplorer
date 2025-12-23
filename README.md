@@ -39,7 +39,7 @@ npm run populateDB
 ```
 
 Option B — Import depuis un fichier fourni (data)
-- Si vous avez reçu un fichier JSON dans le dossier `data` avec le rapport, vous devez l’importer manuellement dans mongoDB.
+- Vous avez reçu un fichier JSON dans le dossier `data` avec le rapport, vous pouvez l’importer manuellement dans mongoDB au lieu d'utiliser le script.
 
 ## Endpoints principaux (backend)
 Vous devez remplacer l’hôte selon votre environnement (local ou déployé). Les routes protégées nécessitent un `token` JWT.
@@ -77,14 +77,13 @@ Vous devez vérifier et adapter la configuration si nécessaire.
 - Variables d’environnement: `.env` (ex: `MONGO_URI`, `JWT_SECRET`, `PORT`)
 
 ## Tests et charge
-Vous devez exécuter les tests et le test de charge si demandé.
 ```powershell
 npm test --verbose
 npm run load:test
 ```
 
 ## Logs
-Par défaut, les logs s’affichent en console. Vous devez produire des fichiers de logs via PowerShell si requis:
+Par défaut, les logs s’affichent en console.
 ```powershell
 New-Item -ItemType Directory -Force -Path .\logs
 npm run dev | Tee-Object -FilePath .\logs\server.log
